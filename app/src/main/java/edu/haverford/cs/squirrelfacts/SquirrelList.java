@@ -1,10 +1,12 @@
 package edu.haverford.cs.squirrelfacts;
 
+import android.database.DataSetObserver;
 import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * A single link of a linked list
@@ -12,10 +14,19 @@ import java.util.Iterator;
 class SquirrelLink {
     protected Squirrel mSquirrel;
     protected SquirrelLink mNext;
+    protected SquirrelLink mPrev;
 
     public SquirrelLink(Squirrel squirrel, SquirrelLink next) {
         mSquirrel = squirrel;
         mNext = next;
+        mPrev = null;
+    }
+
+    public void  recon(Squirrel s, SquirrelLink n)
+    {
+        mSquirrel = s;
+        mNext = n;
+        mPrev = null;
     }
 
     public Squirrel getSquirrel() {
@@ -26,14 +37,18 @@ class SquirrelLink {
     }
 
     public void setNext(SquirrelLink sl) { mNext = sl; }
+    public void setPrev(SquirrelLink sl) { mPrev = sl; }
 }
 
 class SquirrelIterator implements Iterator<Squirrel> {
     protected SquirrelLink mCur;
     protected SquirrelLink mPrev = null;
+    protected SquirrelList mList;
+    protected Squirrel lastOut = null;
 
-    public SquirrelIterator(SquirrelLink firstLink) {
+    public SquirrelIterator(SquirrelLink firstLink, SquirrelList in) {
         mCur = firstLink;
+        mList = in;
     }
 
     public boolean hasNext() {
@@ -41,33 +56,54 @@ class SquirrelIterator implements Iterator<Squirrel> {
     }
 
     public Squirrel next() {
-        Squirrel s = mCur.getSquirrel();
+        lastOut = mCur.getSquirrel();
         mPrev = mCur;
         mCur = mCur.getNext();
-        return s;
+        return lastOut;
     }
 
     /**
-     * Wrong :-(
+     * Removes last returned element of the iterator from the underlying collection
      */
     public void remove() {
-        mPrev.setNext(mCur.getNext());
+        if(mPrev.mPrev==null) mPrev.recon(mCur.getSquirrel(), mCur.getNext());
+        else mPrev.mPrev.setNext(mCur);
+        mList.notifyObservers();
     }
+    /*public void remove()
+    {
+        mList.remove(lastOut);
+    }*/
 }
 
 public class SquirrelList implements Iterable<Squirrel>, Collection<Squirrel> {
     protected SquirrelLink mFirst;
+    protected List<DataSetObserver> mObservers;
 
     public SquirrelList() {
         mFirst = null;
+        mObservers = new ArrayList<DataSetObserver>();
+    }
+
+
+    public void addObserver(DataSetObserver o) {mObservers.add(o);}
+    public void removeObserver(DataSetObserver o) {mObservers.remove(o);}
+
+    protected void notifyObservers()
+    {
+        for(DataSetObserver o: mObservers) {o.onChanged();o.notify();}
     }
 
     /**
-     * TODO: Create a constructor that creates a list of squirrels from an array.
+     * Creates a list of squirrels from an array.
      * @param squirrels
      */
-    SquirrelList(Squirrel[] squirrels) {
-        return;
+    public SquirrelList(Squirrel[] squirrels) {
+        this();
+        for(int i = squirrels.length-1; i>=0; i--)
+        {
+            addToFront(squirrels[i]);
+        }
     }
 
     /**
@@ -76,8 +112,23 @@ public class SquirrelList implements Iterable<Squirrel>, Collection<Squirrel> {
      * @return {this}, the updated object after adding the squirrel to the front of the list.
      */
     public SquirrelList addToFront(Squirrel squirrel) {
-        mFirst = new SquirrelLink(squirrel, mFirst);
+        squirrel.setId(size());
+        SquirrelLink temp = genProperLink(squirrel,mFirst);
+        if(mFirst!=null) mFirst.setPrev(temp);
+        mFirst = temp;
+        notifyObservers();
         return this;
+    }
+
+    /**
+     * Gives proper version of link for polymorphism
+     * @param s
+     * @param l
+     * @return
+     */
+    protected SquirrelLink genProperLink(Squirrel s, SquirrelLink l)
+    {
+        return new SquirrelLink(s,l);
     }
 
     /**
@@ -128,46 +179,62 @@ public class SquirrelList implements Iterable<Squirrel>, Collection<Squirrel> {
     }
 
     /**
-     * TODO: Implement this
-     * @return
+     * @return Returns true if list has zero elements, false otherwise.
      */
     @Override
     public boolean isEmpty() {
-        return false;
+        return mFirst==null;
     }
 
     /**
-     * TODO: Implement this
+     *
      * @param o
-     * @return
+     * @return Returns true if list contains o, false otherwise.
      */
     @Override
     public boolean contains(Object o) {
+        Iterator<Squirrel> it = iterator();
+
+        while(it.hasNext())
+            if(it.next()==o) return true;
+
         return false;
     }
 
     @NonNull
     @Override
     public Iterator<Squirrel> iterator() {
-        return new SquirrelIterator(mFirst);
+        return new SquirrelIterator(mFirst,this);
     }
 
     /**
      * TODO: Implement this method
      * @param ts
      * @param <T>
-     * @return
+     * @return Returns list as array.
      */
     @NonNull
     @Override
     public <T> T[] toArray(@NonNull T[] ts) {
-        return null;
+
+
+        if(size()>ts.length) ts = (T[]) new Squirrel[size()];
+
+        Iterator<Squirrel> it = iterator();
+        int i=0;
+        for(; it.hasNext(); i++)
+        {
+            ts[i]=(T) it.next();
+        }
+        if(size()<ts.length) ts[i] = null;
+
+        return ts;
     }
 
     @NonNull
     @Override
     public Object[] toArray() {
-        Object[] arr = new Object[size()];
+        Squirrel[] arr = new Squirrel[size()];
         int j = 0;
         for (Iterator<Squirrel> i = iterator(); i.hasNext(); j++) {
             arr[j] = i.next();
@@ -182,34 +249,44 @@ public class SquirrelList implements Iterable<Squirrel>, Collection<Squirrel> {
     }
 
     /**
-     * TODO: Implement this. Be sure to make the comment more thoughtful.
+     * Removes first instance o from list if o is in the list.
      * @param o
-     * @return
+     * @return Returns true if removal is successful false otherwise.
      */
     @Override
     public boolean remove(Object o) {
-        throw new UnsupportedOperationException();
+
+        SquirrelLink ref = mFirst;
+
+        if(mFirst!= null && mFirst.getSquirrel()==o) {mFirst = mFirst.mNext; mFirst.setPrev(null); return true;}
+        while(ref!=null)
+        {
+            if(ref.getSquirrel()==o) {ref.mPrev.setNext(ref.mNext); ref.mNext.setPrev(ref.mPrev); notifyObservers(); return true;}
+            ref = ref.mNext;
+        }
+        return false;
     }
 
     /**
      * TODO: implement `addAll`.
-     * @param collection
-     * @return
+     * @param collection The collection to be added to the Squirrel List.
+     * @return Squirrel List containing original elements plus those in collection.
      */
     @Override
     public boolean addAll(@NonNull Collection<? extends Squirrel> collection) {
+        int ogSize = size();
         for (Squirrel squirrel : collection) {
             add(squirrel);
         }
-        return true;
+        return  ogSize!=size();
     }
 
     /**
-     * TODO: Implement the `clear` method, which removes all of the elements from the array
+     *Clears all elements from list.
      */
     @Override
     public void clear() {
-
+        mFirst = null;
     }
 
     public ArrayList<Squirrel> toArrayList() {

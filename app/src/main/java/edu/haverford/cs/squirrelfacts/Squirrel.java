@@ -4,6 +4,8 @@ package edu.haverford.cs.squirrelfacts;
  * Documents various facts about a squirrel
  */
 public class Squirrel {
+
+    private int mId=0;
     // The Squirrel's name
     private String mName;
 
@@ -18,6 +20,9 @@ public class Squirrel {
         mLocation = location;
         mPicture = url;
     }
+
+    public void setId(int i){mId = i;}
+    public int getId(){return mId;}
 
     @Override
     public boolean equals(Object b) {

@@ -14,8 +14,14 @@ import android.widget.TextView;
  * TODO: Implement all of this...
  */
 public class SquirrelListAdapter extends BaseAdapter implements ListAdapter {
+
+    private Context mContext;
+    private SquirrelList mList;
+
     public SquirrelListAdapter(Context context, SquirrelList sl) {
         super();
+        mContext = context;
+        mList = sl;
     }
 
     @Override
@@ -30,27 +36,27 @@ public class SquirrelListAdapter extends BaseAdapter implements ListAdapter {
 
     @Override
     public void registerDataSetObserver(DataSetObserver dataSetObserver) {
-        return;
+        mList.addObserver(dataSetObserver);
     }
 
     @Override
     public void unregisterDataSetObserver(DataSetObserver dataSetObserver) {
-        return;
+        mList.removeObserver(dataSetObserver);
     }
 
     @Override
     public int getCount() {
-        return -1;
+        return mList.size();
     }
 
     @Override
     public Squirrel getItem(int i) {
-        return null;
+        return mList.getItem(i);
     }
 
     @Override
     public long getItemId(int i) {
-        return i;
+        return getItem(i).getId();//should be same as i
     }
 
     @Override
@@ -58,14 +64,35 @@ public class SquirrelListAdapter extends BaseAdapter implements ListAdapter {
         return false;
     }
 
+    //TODO-please work
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
+        //Careful
+
+        final Squirrel s = mList.getItem(i);
+        if (view == null) {
+            view = LayoutInflater.from(mContext).inflate(R.layout.squirrel_item_template, viewGroup, false);
+        }
+        TextView name = (TextView) view.findViewById(R.id.squirrelName);
+        TextView location = (TextView) view.findViewById(R.id.squirrelLocation);
+        name.setText(s.getName());
+        location.setText(s.getLocation());
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent it = new Intent(mContext, SquirrelInfoActivity.class);
+                it.putExtra("name", s.getName());
+                it.putExtra("location", s.getLocation());
+                it.putExtra("picture", s.getPicture());
+                mContext.startActivity(it);
+            }
+        });
         return view;
     }
 
     @Override
     public int getItemViewType(int i) {
-        return 1;
+        return 0;
     }
 
     @Override
@@ -75,6 +102,6 @@ public class SquirrelListAdapter extends BaseAdapter implements ListAdapter {
 
     @Override
     public boolean isEmpty() {
-        return false;
+        return getCount()==0;
     }
 }
