@@ -42,6 +42,43 @@ public class SquirrelListTest {
         assertEquals(false, mEmptySquirrelList.addToFront(mTestSquirrel).isEmpty());
     }
 
+    @Test
+    public void list_isEmpty() {
+        assertEquals(true, mEmptySquirrelList.isEmpty());
+    }
+
+    @Test
+    public void list_contains() {
+        SquirrelList sl = mEmptySquirrelList;
+        sl.addToFront(mTestSquirrel3);
+        sl.addToFront(mTestSquirrel2);
+        sl.addToFront(mTestSquirrel);
+        assertEquals(true, sl.contains(mTestSquirrel2));
+    }
+
+    @Test
+    public void list_arr1()
+    {
+        SquirrelList sl = mEmptySquirrelList;
+        sl.addToFront(mTestSquirrel3);
+        sl.addToFront(mTestSquirrel2);
+        sl.addToFront(mTestSquirrel);
+
+        Squirrel[] comp = {mTestSquirrel, mTestSquirrel2, mTestSquirrel3};
+
+        Squirrel[] gen =(Squirrel[]) sl.toArray();
+        Squirrel[] gen1 = sl.toArray(new Squirrel[0]);
+        Squirrel[] gen2 = sl.toArray(new Squirrel[4]);
+
+        for(int i = 0; i < comp.length; i++)
+        {
+            assertEquals(comp[i],gen[i]);
+            assertEquals(comp[i],gen1[i]);
+            assertEquals(comp[i],gen2[i]);
+        }
+        assertEquals(null, gen2[3]);
+    }
+
     // Test that if you insert an item in the second position, `getItem` will return it properly
     @Test
     public void list_getBackInsertedPosition() {
@@ -61,7 +98,20 @@ public class SquirrelListTest {
         Iterator<Squirrel> i = sl.iterator();
         i.next();
         i.remove();
-        assertEquals(mTestSquirrel3, sl.getItem(1));
+        assertEquals(mTestSquirrel3
+                , sl.getItem(1));
+    }
+
+    @Test
+    public void list_remove() {
+        SquirrelList sl = mEmptySquirrelList;
+        sl.addToFront(mTestSquirrel3);
+        sl.addToFront(mTestSquirrel2);
+        sl.addToFront(mTestSquirrel);
+        sl.remove(mTestSquirrel2);
+        sl.remove(mTestSquirrel);
+        assertEquals(mTestSquirrel3
+                , sl.getFirst());
     }
 
     @Test
@@ -77,12 +127,30 @@ public class SquirrelListTest {
         assertEquals(true, mEmptySquirrelList.isEmpty());
     }
 
+    @Test
+    public void list_addAll() {
+        SquirrelList sl = mEmptySquirrelList;
+        sl.addToFront(mTestSquirrel3);
+        sl.addToFront(mTestSquirrel2);
+        sl.addToFront(mTestSquirrel);
+
+        assertEquals(false, sl.addAll(new SquirrelList()));
+        assertEquals(true, sl.addAll(new SquirrelList().addToFront(mTestSquirrel)));
+    }
+
     /**
      * Part 2: Failing test for iteration removal here..
-     * TODO: change this from {testname} to your thoughtful name!!
      */
     @Test
-    public void list_testname() {
-        return;
+    public void list_breakFaultyItRemove() {
+        SquirrelList sl = mEmptySquirrelList;
+        sl.addToFront(mTestSquirrel3);
+        sl.addToFront(mTestSquirrel2);
+        sl.addToFront(mTestSquirrel);
+        Iterator<Squirrel> i = sl.iterator();
+        i.next();
+        i.remove();
+        assertEquals(mTestSquirrel2
+                , sl.getItem(0));
     }
 }
