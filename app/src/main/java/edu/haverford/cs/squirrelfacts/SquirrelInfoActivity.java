@@ -61,8 +61,13 @@ public class SquirrelInfoActivity extends AppCompatActivity {
                 URL url = new URL(strings[0]);
                 mBitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
 
+            }catch (Exception e){
 
-            }catch (Exception e){e.printStackTrace();}
+                e.printStackTrace();
+                try{mBitmap = BitmapFactory.decodeStream(
+                        (new URL("https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Black_Squirrel.jpg/220px-Black_Squirrel.jpg")).openConnection().getInputStream());}
+                catch(Exception e1){e1.printStackTrace();}
+            }
 
 
 

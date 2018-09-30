@@ -1,8 +1,12 @@
 package edu.haverford.cs.squirrelfacts;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.JsonReader;
+import android.view.View;
 import android.widget.ListView;
 import android.os.Bundle;
 
@@ -38,7 +42,7 @@ class GetNewSquirrelsTask extends AsyncTask<String, Void, SquirrelList> {
     /**
      * Takes string and returns JSON interpretable string from webpage.
      * @param mUrl
-     * @return
+     * @return Returns string containint the JSON data
      */
     private String getData(String mUrl) //Sourced ideas from: http://www.androidhive.info/2012/01/android-json-parsing-tutorial/
     {
@@ -75,9 +79,9 @@ class GetNewSquirrelsTask extends AsyncTask<String, Void, SquirrelList> {
 
 
     /**
-     * TODO: Implement this method to download a list of squirrels and parse it
+     * Downloads a list of squirrels and parses it
      * @param strings
-     * @return
+     * @return Returns a squirrel list formed from the JSON
      */
     @Override
     protected SquirrelList doInBackground(String... strings) {
@@ -109,17 +113,21 @@ class GetNewSquirrelsTask extends AsyncTask<String, Void, SquirrelList> {
     }
 }
 
+
 public class MainActivity extends AppCompatActivity {
 
 
     private GetNewSquirrelsTask mTask;
     private SquirrelList mList;
+    public final static int ADD_CODE = 88;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ListView listView = (ListView) findViewById(R.id.squirrel_list);
+
+
         Squirrel s = new Squirrel("Black Squirrel",
                 "Haverford, PA",
                 "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Black_Squirrel.jpg/220px-Black_Squirrel.jpg");
@@ -134,14 +142,40 @@ public class MainActivity extends AppCompatActivity {
 
         }catch(Exception e){e.printStackTrace();}
 
-
-        ArrayList<Squirrel> al = mList.toArrayList();
-        //SquirrelArrayAdapter adapter = new SquirrelArrayAdapter(this, al);
-        /**
-         * TODO: Uncomment this and make sure you can use your adapter
-         */
         SquirrelListAdapter adapter = new SquirrelListAdapter(this, mList);
         listView.setAdapter(adapter);
+
+        final Context context = this;
+
+        //Adds button to go to "addSquirrel" screen
+        FloatingActionButton addSquirrels = findViewById(R.id.add_squirrel);
+        addSquirrels.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent it = new Intent(context, MakeSquirrelActivity.class);
+                it.putExtra("reqCode",ADD_CODE);
+                startActivityForResult(it,ADD_CODE);
+            }
+        });
+    }
+
+
+    /**
+     * Creates squirrel from new data provided and adds to underlying list.
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    @Override
+    protected void onActivityResult(int requestCode,int resultCode, Intent data)
+    {
+        super.onActivityResult(requestCode,resultCode,data);
+        if(requestCode==ADD_CODE && resultCode==RESULT_OK) {
+            String name = data.getStringExtra("name");
+            String loc = data.getStringExtra("location");
+            String pic = data.getStringExtra("picture");
+            mList.addToFront(new Squirrel(name,loc,pic));
+        }
     }
 
     public void aSyncDone(SquirrelList toAdd)

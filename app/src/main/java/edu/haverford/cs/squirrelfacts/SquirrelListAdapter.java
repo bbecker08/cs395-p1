@@ -11,7 +11,7 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 
 /**
- * TODO: Implement all of this...
+ * Communicates between list view and squirrel list. Keeps things kosher.
  */
 public class SquirrelListAdapter extends BaseAdapter implements ListAdapter {
 
@@ -64,7 +64,13 @@ public class SquirrelListAdapter extends BaseAdapter implements ListAdapter {
         return false;
     }
 
-    //TODO-please work
+    /**
+     * Systematically called by android to return elements of the list...
+     * @param i
+     * @param view
+     * @param viewGroup
+     * @return
+     */
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
         //Careful

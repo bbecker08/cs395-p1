@@ -208,7 +208,6 @@ public class SquirrelList implements Iterable<Squirrel>, Collection<Squirrel> {
     }
 
     /**
-     * TODO: Implement this method
      * @param ts
      * @param <T>
      * @return Returns list as array.
@@ -268,7 +267,6 @@ public class SquirrelList implements Iterable<Squirrel>, Collection<Squirrel> {
     }
 
     /**
-     * TODO: implement `addAll`.
      * @param collection The collection to be added to the Squirrel List.
      * @return Squirrel List containing original elements plus those in collection.
      */
