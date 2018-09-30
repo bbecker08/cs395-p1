@@ -34,29 +34,48 @@ public class SquirrelInfoActivity extends AppCompatActivity {
         mSquirrelPic = (ImageView)findViewById(R.id.squirrelPic);
         name.setText(i.getStringExtra("name"));
         location.setText(i.getStringExtra("location"));
-        new SquirrelImageLoader().execute(i.getStringExtra("picture"));
+        new SquirrelImageLoader(mSquirrelPic).execute(i.getStringExtra("picture"));
         return;
     }
 
-    private class SquirrelImageLoader extends AsyncTask<String, Void, Void> {
+    private class SquirrelImageLoader extends AsyncTask<String, Void, Bitmap> { //read up at: https://stackoverflow.com/questions/5776851/load-image-from-url
         Bitmap mBitmap;
+        private ImageView mView;
+
+        public SquirrelImageLoader(ImageView imageView){
+            mView = imageView;
+        }
+
 
         /**
-         *
+         * Takes Image URL and returns a bitmap which can then be used to fill in the
+         * image view.
          * @param strings
-         * @return
+         * @return A bitmap to be used to fill squirrel info
          */
         @Override
-        protected Void doInBackground(String... strings) {
-            return null;
+        protected Bitmap doInBackground(String... strings) {
+
+            try{
+
+                URL url = new URL(strings[0]);
+                mBitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+
+
+            }catch (Exception e){e.printStackTrace();}
+
+
+
+            return mBitmap;
         }
 
         /**
-         * TODO: Implement this
+         * Sets up loaded image.
          */
         @Override
-        protected void onProgressUpdate(Void... values) {
-            return;
+        protected void onPostExecute(Bitmap bm)
+        {
+            if(bm!=null)mView.setImageBitmap(bm);
         }
     }
 }

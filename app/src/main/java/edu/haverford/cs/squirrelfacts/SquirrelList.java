@@ -91,7 +91,7 @@ public class SquirrelList implements Iterable<Squirrel>, Collection<Squirrel> {
 
     protected void notifyObservers()
     {
-        for(DataSetObserver o: mObservers) {o.onChanged();o.notify();}
+        for(DataSetObserver o: mObservers) {o.onChanged();/*o.notify();*/}
     }
 
     /**
@@ -275,9 +275,12 @@ public class SquirrelList implements Iterable<Squirrel>, Collection<Squirrel> {
     @Override
     public boolean addAll(@NonNull Collection<? extends Squirrel> collection) {
         int ogSize = size();
-        for (Squirrel squirrel : collection) {
-            add(squirrel);
+        Iterator<Squirrel> it = (Iterator<Squirrel>) collection.iterator();
+
+        while(it.hasNext()){
+            add(it.next());
         }
+
         return  ogSize!=size();
     }
 

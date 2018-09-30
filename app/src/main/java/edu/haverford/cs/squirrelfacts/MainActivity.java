@@ -27,6 +27,14 @@ import java.util.Iterator;
  */
 class GetNewSquirrelsTask extends AsyncTask<String, Void, SquirrelList> {
 
+
+    private MainActivity mRef;
+    public GetNewSquirrelsTask(MainActivity ac)
+    {
+        super();
+        mRef = ac;
+    }
+
     /**
      * Takes string and returns JSON interpretable string from webpage.
      * @param mUrl
@@ -79,8 +87,8 @@ class GetNewSquirrelsTask extends AsyncTask<String, Void, SquirrelList> {
         String toParse = getData(strings[0]);
         try {
 
-            JSONObject ob = new JSONObject(toParse);
-            JSONArray stuff =ob.getJSONArray("");
+            //JSONObject ob = new JSONObject(toParse);
+            JSONArray stuff = new JSONArray(toParse);//ob.getJSONArray("");
             for(int i=0; i<stuff.length();i++)
             {
                 JSONObject sq = stuff.getJSONObject(i);
@@ -92,9 +100,21 @@ class GetNewSquirrelsTask extends AsyncTask<String, Void, SquirrelList> {
         }catch(Exception e){e.printStackTrace();}
         return out;
     }
- }
+
+    @Override
+    protected void onPostExecute(SquirrelList squirrels) {
+        super.onPostExecute(squirrels);
+
+        mRef.aSyncDone(squirrels);
+    }
+}
 
 public class MainActivity extends AppCompatActivity {
+
+
+    private GetNewSquirrelsTask mTask;
+    private SquirrelList mList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,31 +123,29 @@ public class MainActivity extends AppCompatActivity {
         Squirrel s = new Squirrel("Black Squirrel",
                 "Haverford, PA",
                 "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Black_Squirrel.jpg/220px-Black_Squirrel.jpg");
-        SquirrelList sl = (new SquirrelList());
+        mList = (new SquirrelList());
         for (int i = 0; i < 100; i++) {
-            sl.addToFront(s);
+            mList.addToFront(s);
         }
 
-        SquirrelList toAdd = new SquirrelList();
-
         try {
+            mTask = new GetNewSquirrelsTask(this);//.execute("https://raw.githubusercontent.com/kmicinski/squirreldata/master/squirrels.json");
+            mTask.execute("https://raw.githubusercontent.com/kmicinski/squirreldata/master/squirrels.json");
 
-            toAdd = new GetNewSquirrelsTask().execute("https://raw.githubusercontent.com/kmicinski/squirreldata/master/squirrels.json").get();
-            Iterator<Squirrel> it = toAdd.iterator();
-
-            while(it.hasNext())
-            {
-                sl.addToFront(it.next());
-            }
         }catch(Exception e){e.printStackTrace();}
 
 
-        ArrayList<Squirrel> al = sl.toArrayList();
+        ArrayList<Squirrel> al = mList.toArrayList();
         //SquirrelArrayAdapter adapter = new SquirrelArrayAdapter(this, al);
         /**
          * TODO: Uncomment this and make sure you can use your adapter
          */
-        SquirrelListAdapter adapter = new SquirrelListAdapter(this, sl);
+        SquirrelListAdapter adapter = new SquirrelListAdapter(this, mList);
         listView.setAdapter(adapter);
+    }
+
+    public void aSyncDone(SquirrelList toAdd)
+    {
+        mList.addAll(toAdd);
     }
 }
